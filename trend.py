@@ -8,7 +8,7 @@ import asyncio
 
 # --------- Streamlit UI ---------
 st.set_page_config(layout="wide")
-st.title("📊 Workshop Feedback Trend Dashboard")
+st.title("📊 AcademyXi Workshop Feedback Trend Dashboard")
 
 # Load data
 @st.cache_data
@@ -31,17 +31,19 @@ filtered = df[
     (df["Instructor"] == instructor)
 ].sort_values("Date")
 
-st.subheader(f"🧾 Filtered Records: {len(filtered)}")
+st.subheader(f"🧾 Trainer Benchmark Ratings: {len(filtered)}")
 st.dataframe(filtered[["Date", "NPS", "Instructor Rating"]])
 
 # --------- Chart ---------
-st.subheader("📈 Trend Over Time")
+st.subheader("📈 Trainer Benchmark Trend Over Time")
 fig, ax = plt.subplots(figsize=(10, 5))
-ax.plot(filtered["Date"], filtered["NPS"], label="NPS", marker="o")
-ax.plot(filtered["Date"], filtered["Instructor Rating"], label="Instructor Rating %", marker="s")
+
+ax.plot(filtered["Date"], filtered["NPS"], label="NPS", marker=".")
+ax.plot(filtered["Date"], filtered["Instructor Rating"], label="Instructor Rating %", marker=".")
+ax.plot(filtered["Date"], filtered["CSAT"], label="CSAT", marker=".")
 ax.set_xlabel("Date")
 ax.set_ylabel("Score")
-ax.set_title(f"Trend Analysis - {program} ({instructor})")
+ax.set_title(f"{program} - {instructor}")
 ax.legend()
 ax.grid(True)
 plt.xticks(rotation=45)
@@ -54,21 +56,39 @@ st.subheader("🤖 AI Insights")
 data_text = filtered[["Date", "NPS", "Instructor Rating", "Quote"]].to_string(index=False)
 prompt = f"""
 You are an AI analyst specializing in evaluating corporate training sessions. Based on the following inputs — **program name**, **facilitator name**, and **client** — generate a performance summary that includes:
-1.  **Program Effectiveness**  
-    Summarize how well the program delivered by the specified facilitator performed, based on historical participant feedback. Highlight key themes from qualitative comments and overall satisfaction scores (if available).
-2.  **Comparative Analysis with Previous Sessions**  
-    Compare the current session with previous sessions of the same program and/or facilitator, using available feedback data. Identify trends or changes in performance, such as improvements in delivery, engagement, or participant satisfaction.  
-Client: {client}
-Program: {program}
-Instructor: {instructor}
-Feedback Data:
+
+ 1.Program Effectiveness
+Summarize how well the program delivered by the specified facilitator performed, based on historical participant feedback. Include:
+- Quantitative indicators (NPS, Instructor Rating, CSAT)
+- Comparison with country-level industry benchmarks:
+    - NPS benchmark: 14  
+    - Instructor rating benchmark: 82  
+    - CSAT benchmark: 4.2 (assumed 5-point scale)
+- Key strengths and any qualitative themes from participant comments.
+
+ 2. Comparative Analysis with Previous Sessions
+Compare the current session’s performance with past sessions delivered by the same facilitator and/or for the same program using available feedback data. Highlight trends in delivery quality, engagement, or satisfaction over time.
+
+Input Format:
+
+- Client: {client}  
+- Program: {program}  
+- Instructor: {instructor}  
+- Feedback Data:  
 {data_text}
- 
+
 Output Format Example:
- 
-Program Effectiveness: The "[Program Name]" conducted for [Client] by [Facilitator Name] received high satisfaction from participants, with consistent scores of X/10. Participants highlighted [e.g., facilitator expertise, engaging delivery, practical relevance] as key strengths.
- 
-Comparison with Previous Sessions: Compared to prior deliveries, this session maintained a high standard. Notably, feedback suggests [e.g., improved clarity in concepts, more interactive group work, stronger case study design]. Average satisfaction rose/fell by X% from the previous session.
+
+
+Program: Product Management Essentials (Nithin)
+
+*   NPS of **69.3** places this session **well above the industry average** of 14, reflecting strong learner advocacy and engagement.  
+*   Instructor Rating of **89.6** significantly **exceeds the national benchmark** of 82, suggesting high confidence in the facilitator’s delivery and expertise.  
+*   A CSAT score of **5.0** (on a 5-point scale) indicates **maximum participant satisfaction**.  
+*   Participant comments describe the session as “engaging” and the facilitator as “knowledgeable” and “well-prepared.”
+
+Comparison with Previous Sessions:  
+This session performed **consistently well compared to prior deliveries of the same program, maintaining high satisfaction and engagement. Compared to historical averages, this session saw a **+6.8% improvement** in overall participant satisfaction, indicating strong program stability and delivery quality over time.
 
 Give the output in bullet points
 """
